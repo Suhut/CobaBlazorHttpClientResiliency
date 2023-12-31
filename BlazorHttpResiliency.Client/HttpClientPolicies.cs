@@ -1,11 +1,6 @@
-﻿using System;
-using System.Net.Http;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Polly;
+﻿using Polly;
 using Polly.Extensions.Http;
-using System.Threading.Tasks;
-using System.Threading;
+using System.Net;
 
 namespace BlazorHttpResiliency.Client
 {
@@ -16,7 +11,15 @@ namespace BlazorHttpResiliency.Client
 
         public static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy(IServiceProvider serviceProvider, int retryCount = 3) =>
             HttpPolicyExtensions
-                .HandleTransientHttpError()
+                .HandleTransientHttpError() 
+                .Or<TaskCanceledException>() 
+                .OrResult(response =>
+                    response.StatusCode == HttpStatusCode.NotFound ||
+                    response.StatusCode == HttpStatusCode.RequestTimeout ||
+                    response.StatusCode == HttpStatusCode.BadGateway ||
+                    response.StatusCode == HttpStatusCode.GatewayTimeout ||
+                    response.StatusCode == HttpStatusCode.ServiceUnavailable
+                )
                 .WaitAndRetryAsync(retryCount,
                     retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))
                                   + TimeSpan.FromMilliseconds(_jitterer.Next(0, 100)),
