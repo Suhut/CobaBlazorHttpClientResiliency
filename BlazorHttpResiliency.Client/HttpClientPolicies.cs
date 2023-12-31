@@ -12,9 +12,9 @@ namespace BlazorHttpResiliency.Client
         public static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy(IServiceProvider serviceProvider, int retryCount = 3) =>
             HttpPolicyExtensions
                 .HandleTransientHttpError() 
-                .Or<TaskCanceledException>() 
+                //.Or<TaskCanceledException>() 
                 .OrResult(response =>
-                    response.StatusCode == HttpStatusCode.NotFound ||
+                    //response.StatusCode == HttpStatusCode.NotFound ||
                     response.StatusCode == HttpStatusCode.RequestTimeout ||
                     response.StatusCode == HttpStatusCode.BadGateway ||
                     response.StatusCode == HttpStatusCode.GatewayTimeout ||
